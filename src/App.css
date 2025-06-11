@@ -1,9 +1,32 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+@import './main.css';
+
+/* Basic Styles */
+/* body {
+  margin: 0;
+  font-family: 'Arial', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f4f7f6;
+} */
+
+/* body > div {
+    padding: 0 !important;
+    margin: 0 !important;
+} */
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
 }
+
+/* Container for general content */
+/* .container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+} */
+
+
 
 .logo {
   height: 6em;
@@ -39,4 +62,197 @@
 
 .read-the-docs {
   color: #888;
+}
+
+/* Add basic styling for the hero section */
+.hero-section {
+  background-color: var(--secondary-color); /* Updated to secondary color for section highlight */
+  padding: 40px 15px; /* More reduced padding */
+  margin-bottom: 20px; /* Adjusted space below the hero */
+}
+
+/* Style the multi-field search form */
+.multi-field-search-form {
+  display: flex;
+  gap: 15px; /* Increased gap for better spacing */
+  justify-content: center;
+  align-items: center; /* Align items vertically in the center */
+  flex-wrap: wrap;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.multi-field-search-form .form-group {
+  flex: 1;
+  min-width: 220px; /* Adjusted min-width for better scaling */
+}
+
+.multi-field-search-form .form-control,
+.multi-field-search-form .form-select {
+  width: 100%;
+  font-size: 1rem;
+  padding: 10px 12px;
+  border: 1px solid var(--secondary-color); /* Consistent border for all inputs */
+  border-radius: 8px;
+  color: var(--dark-text-color);
+}
+
+.multi-field-search-form .form-control:focus,
+.multi-field-search-form .form-select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 0.25rem rgba(157, 22, 82, 0.25);
+}
+
+/* Placeholder styling */
+.multi-field-search-form .form-control::placeholder {
+  color: var(--light-text-color); /* Lighter color for placeholder */
+  opacity: 0.8; /* Ensure visibility */
+}
+
+.multi-field-search-form button {
+  font-size: 1rem;
+  padding: 10px 20px;
+}
+
+/* Add some responsiveness for smaller screens for search bar */
+@media (max-width: 768px) {
+  .multi-field-search-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .multi-field-search-form .form-group {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .multi-field-search-form button {
+    width: 100%;
+  }
+}
+
+/* --- Job Card Styling --- */
+/* Adjusted padding and font sizes for smaller card and less info */
+.job-card-list .col {
+  display: flex;
+  justify-content: center; /* Center cards within their columns */
+}
+
+.job-card {
+  border: 1px solid #ddd;
+  border-radius: 8px; /* More rounded corners */
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); /* Adjusted shadow */
+  transition: transform 0.2s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  width: 100%; /* Ensure card takes full width of its column */
+  max-width: 320px; /* Set a max-width for the job card to make it smaller */
+}
+
+.job-card:hover {
+  transform: translateY(-3px); /* Increased lift on hover */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12); /* More prominent shadow on hover */
+}
+
+.job-card .card-body {
+  padding: 15px; /* Increased padding for better spacing */
+  flex-grow: 1;
+}
+
+.job-card .job-title {
+  font-size: 1.1rem; /* Adjusted title size for readability */
+  margin-bottom: 8px; /* Adjusted space */
+  font-weight: 600; /* Make title bolder */
+}
+
+.job-card .job-meta p {
+  font-size: 0.85rem; /* Adjusted meta text size */
+  margin-bottom: 5px; /* Adjusted space */
+}
+
+.job-card .job-meta i {
+  color: var(--primary-color); /* Use primary color for icons */
+  margin-right: 5px; /* Adjusted space */
+}
+
+.job-card .job-description {
+  font-size: 0.9rem; /* Adjusted description text size */
+  color: var(--light-text-color);
+  line-height: 1.4; /* Adjusted line height for readability */
+  margin-bottom: 15px; /* Adjusted space before footer content */
+  max-height: 60px; /* Limit description height */
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Skills section visible */
+.job-card .mb-3 {
+  display: block !important; /* Ensure skills section is visible */
+  margin-top: 10px; /* Add some margin above skills */
+}
+
+.job-card .skills-list span {
+  display: inline-block;
+  background-color: var(--secondary-color); /* Ensure light gray background for skills */
+  color: var(--accent-color); /* Ensure dark text color for better visibility */
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  margin: 0 5px 5px 0; /* Spacing between skill badges */
+}
+
+.job-card .card-footer {
+  background-color: var(--site-background-color); /* Use site background for footer */
+  border-top: 1px solid #eee;
+  padding: 10px 15px; /* Adjusted footer padding */
+  font-size: 0.8rem; /* Adjusted footer text size */
+  color: var(--light-text-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap; /* Allow wrapping for small screens */
+}
+
+.job-card .quick-apply-btn {
+  /* Remove conflicting styles, rely on main.css */
+  font-size: auto; /* Revert to auto to respect main.css */
+  padding: auto; /* Revert to auto to respect main.css */
+  border-radius: auto; /* Revert to auto to respect main.css */
+  background-color: auto; /* Revert to auto to respect main.css */
+  color: auto; /* Revert to auto to respect main.css */
+  border: auto; /* Revert to auto to respect main.css */
+  transition: auto; /* Revert to auto to respect main.css */
+}
+
+.job-card .quick-apply-btn:hover {
+  /* Remove conflicting styles, rely on main.css */
+  background-color: auto; /* Revert to auto to respect main.css */
+  color: auto; /* Revert to auto to respect main.css */
+  border-color: auto; /* Revert to auto to respect main.css */
+  transform: auto; /* Revert to auto to respect main.css */
+  box-shadow: auto; /* Revert to auto to respect main.css */
+}
+
+/* Adjustments for buttons within job cards to be more rectangular */
+.job-card .btn {
+  /* Remove conflicting styles, rely on main.css */
+  border-radius: auto; /* Revert to auto to respect main.css */
+  font-weight: auto; /* Revert to auto to respect main.css */
+}
+
+/* Ensure job cards are responsive */
+@media (max-width: 576px) {
+  .job-card {
+    max-width: none; /* Remove max-width on very small screens for better filling */
+  }
+}
+
+/* Ensure `skills-container` is visible if it was hidden */
+.skills-container {
+  display: block !important;
+}
+
+.skills-wrapper {
+  display: block !important;
 }

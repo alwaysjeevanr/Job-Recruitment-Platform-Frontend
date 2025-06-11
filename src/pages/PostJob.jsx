@@ -3,13 +3,20 @@ import { useNavigate } from 'react-router-dom';
 import API from '../axios';
 import { toast } from 'react-toastify';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import '../styles/forms.css';
 
 const PostJob = () => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     location: '',
-    skills: ''
+    skills: '',
+    requirements: '',
+    minSalary: '',
+    maxSalary: '',
+    currency: 'USD',
+    type: '',
+    experience: ''
   });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -26,26 +33,58 @@ const PostJob = () => {
     e.preventDefault();
     setLoading(true);
 
+    const token = localStorage.getItem('token');
+    if (!token) {
+      toast.error('Authentication token not found. Please log in.');
+      setLoading(false);
+      navigate('/login');
+      return;
+    }
+
     try {
       const jobData = {
-        ...formData,
-        skills: formData.skills.split(',').map(skill => skill.trim()).filter(skill => skill)
+        title: formData.title,
+        description: formData.description,
+        location: formData.location,
+        type: formData.type,
+        experience: formData.experience,
+        skills: formData.skills.split(',').map(skill => skill.trim()).filter(skill => skill),
+        requirements: formData.requirements.split(',').map(req => req.trim()).filter(req => req),
+        salary: {
+          min: formData.minSalary ? parseFloat(formData.minSalary) : undefined,
+          max: formData.maxSalary ? parseFloat(formData.maxSalary) : undefined,
+          currency: formData.currency,
+        },
       };
 
-      await API.post('/jobs', jobData);
-      toast.success('Job posted successfully!');
-      
-      setFormData({
-        title: '',
-        description: '',
-        location: '',
-        skills: ''
-      });
-      
-      setTimeout(() => {
-        navigate('/jobs');
-      }, 2000);
+      console.log('Sending job data:', jobData);
+
+      const response = await API.post('/jobs', jobData);
+
+      if (response.data?.success) {
+        toast.success('Job posted successfully!');
+
+        setFormData({
+          title: '',
+          description: '',
+          location: '',
+          skills: '',
+          requirements: '',
+          minSalary: '',
+          maxSalary: '',
+          currency: 'USD',
+          type: '',
+          experience: ''
+        });
+
+        setTimeout(() => {
+          navigate('/jobs');
+        }, 2000);
+      } else {
+        toast.error(response.data?.message || 'Failed to post job due to unexpected response.');
+      }
     } catch (error) {
+      console.error('Error posting job:', error.response?.data || error.message);
       toast.error(error.response?.data?.message || 'Failed to post job. Please try again.');
     } finally {
       setLoading(false);
@@ -56,9 +95,9 @@ const PostJob = () => {
     <div className="container mt-5">
       <div className="row justify-content-center">
         <div className="col-md-8">
-          <div className="card">
+          <div className="card form-container-card">
             <div className="card-body">
-              <h2 className="card-title text-center mb-4">Post a Job</h2>
+              <h2 className="card-title text-center mb-4 form-title">Post a Job</h2>
 
               <form onSubmit={handleSubmit}>
                 <div className="mb-3">
@@ -120,29 +159,114 @@ const PostJob = () => {
                   </div>
                 </div>
 
-                <div className="d-grid gap-2">
-                  <button 
-                    type="submit" 
-                    className="btn btn-primary"
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <>
-                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                        Posting...
-                      </>
-                    ) : (
-                      'Post Job'
-                    )}
-                  </button>
-                  <button 
-                    type="button" 
-                    className="btn btn-outline-secondary"
-                    onClick={() => navigate('/dashboard')}
-                  >
-                    Cancel
-                  </button>
+                <div className="mb-3">
+                  <label htmlFor="requirements" className="form-label">Job Requirements</label>
+                  <textarea
+                    className="form-control"
+                    id="requirements"
+                    name="requirements"
+                    value={formData.requirements}
+                    onChange={handleChange}
+                    rows="5"
+                    placeholder="List detailed job requirements (comma-separated if multiple)..."
+                  />
+                  <div className="form-text">
+                    Enter requirements separated by commas (if multiple)
+                  </div>
                 </div>
+
+                <div className="row mb-3">
+                  <div className="col-md-4">
+                    <label htmlFor="minSalary" className="form-label">Min Salary</label>
+                    <input
+                      type="number"
+                      className="form-control"
+                      id="minSalary"
+                      name="minSalary"
+                      value={formData.minSalary}
+                      onChange={handleChange}
+                      placeholder="e.g., 80000"
+                    />
+                  </div>
+                  <div className="col-md-4">
+                    <label htmlFor="maxSalary" className="form-label">Max Salary</label>
+                    <input
+                      type="number"
+                      className="form-control"
+                      id="maxSalary"
+                      name="maxSalary"
+                      value={formData.maxSalary}
+                      onChange={handleChange}
+                      placeholder="e.g., 100000"
+                    />
+                  </div>
+                  <div className="col-md-4">
+                    <label htmlFor="currency" className="form-label">Currency</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      id="currency"
+                      name="currency"
+                      value={formData.currency}
+                      onChange={handleChange}
+                      required
+                      placeholder="e.g., USD, INR"
+                    />
+                  </div>
+                </div>
+
+                <div className="mb-3">
+                  <label htmlFor="type" className="form-label">Job Type</label>
+                  <select
+                    className="form-select"
+                    id="type"
+                    name="type"
+                    value={formData.type}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Select Job Type</option>
+                    <option value="Full-time">Full-time</option>
+                    <option value="Part-time">Part-time</option>
+                    <option value="Contract">Contract</option>
+                    <option value="Temporary">Temporary</option>
+                    <option value="Internship">Internship</option>
+                  </select>
+                </div>
+
+                <div className="mb-3">
+                  <label htmlFor="experience" className="form-label">Experience Level</label>
+                  <select
+                    className="form-select"
+                    id="experience"
+                    name="experience"
+                    value={formData.experience}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Select Experience Level</option>
+                    <option value="Entry-level">Entry-level</option>
+                    <option value="Mid-level">Mid-level</option>
+                    <option value="Senior-level">Senior-level</option>
+                    <option value="Manager">Manager</option>
+                    <option value="Director">Director</option>
+                  </select>
+                </div>
+
+                <button 
+                  type="submit" 
+                  className="btn btn-primary w-100"
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                      Posting Job...
+                    </>
+                  ) : (
+                    'Post Job'
+                  )}
+                </button>
               </form>
             </div>
           </div>

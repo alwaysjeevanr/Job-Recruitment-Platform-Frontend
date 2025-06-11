@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import API from '../axios';
 import { toast } from 'react-toastify';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import '../styles/forms.css';
 
 const LoginForm = () => {
   const [formData, setFormData] = useState({
@@ -28,7 +29,7 @@ const LoginForm = () => {
       const response = await API.post('/auth/login', formData);
       
       // Store the JWT token in localStorage
-      const { token } = response.data;
+      const { token } = response.data.data;
       localStorage.setItem('token', token);
       
       toast.success('Login successful!');
@@ -44,9 +45,9 @@ const LoginForm = () => {
     <div className="container mt-5">
       <div className="row justify-content-center">
         <div className="col-md-6">
-          <div className="card">
+          <div className="card form-container-card">
             <div className="card-body">
-              <h2 className="card-title text-center mb-4">Login</h2>
+              <h2 className="card-title text-center mb-4 form-title">Login</h2>
 
               <form onSubmit={handleSubmit}>
                 <div className="mb-3">

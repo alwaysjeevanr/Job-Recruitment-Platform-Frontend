@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import API from '../axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import '../styles/forms.css';
+import '../components/RecentJobList.css';
+import { toast } from 'react-hot-toast';
 
 const Applications = () => {
   const [applications, setApplications] = useState([]);
@@ -18,12 +21,17 @@ const Applications = () => {
           return;
         }
 
-        const response = await axios.get('/api/applications', {
+        const response = await API.get('/jobseeker/applications', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
         });
-        setApplications(response.data);
+        if (response.data?.success && response.data?.data) {
+          setApplications(response.data.data);
+        } else {
+          console.error('Unexpected response format for applications:', response.data);
+          setError('Failed to load applications due to unexpected data format.');
+        }
       } catch (error) {
         setError(error.response?.data?.message || 'Failed to fetch applications');
       } finally {
@@ -33,6 +41,22 @@ const Applications = () => {
 
     fetchApplications();
   }, [navigate]);
+
+  const handleDeleteApplication = async (applicationId) => {
+    if (window.confirm('Are you sure you want to delete this application?')) {
+      try {
+        const token = localStorage.getItem('token');
+        await API.delete(`/applications/${applicationId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        toast.success('Application deleted successfully!');
+        setApplications(prevApplications => prevApplications.filter(app => app._id !== applicationId));
+      } catch (err) {
+        toast.error(err.response?.data?.message || 'Failed to delete application.');
+        console.error('Error deleting application:', err);
+      }
+    }
+  };
 
   const getStatusBadgeClass = (status) => {
     switch (status.toLowerCase()) {
@@ -69,48 +93,67 @@ const Applications = () => {
 
   return (
     <div className="container mt-5">
-      <h2 className="mb-4">My Applications</h2>
+      <div className="d-flex justify-content-start mb-3">
+        <button className="btn btn-outline-secondary" onClick={() => navigate(-1)}>
+          <i className="bi bi-arrow-left me-2"></i> Back
+        </button>
+      </div>
+      <h2 className="mb-4 form-title">My Applications</h2>
       
       {applications.length === 0 ? (
-        <div className="alert alert-info">
+        <div className="alert alert-info text-center form-container-card p-4">
           You haven't applied to any jobs yet.
           <button 
-            className="btn btn-primary ms-3"
+            className="btn btn-primary ms-3 mt-3"
             onClick={() => navigate('/jobs')}
           >
-            Browse Jobs
+            <i className="bi bi-search me-1"></i> Browse Jobs
           </button>
         </div>
       ) : (
-        <div className="row">
-          {applications.map(application => (
-            <div key={application._id} className="col-md-6 mb-4">
-              <div className="card h-100">
-                <div className="card-body">
-                  <h5 className="card-title">{application.job.title}</h5>
-                  <h6 className="card-subtitle mb-2 text-muted">
-                    <i className="bi bi-building"></i> {application.job.company}
-                  </h6>
-                  <p className="card-text">
-                    <small className="text-muted">
-                      Applied on {new Date(application.appliedAt).toLocaleDateString()}
-                    </small>
-                  </p>
-                  <div className="d-flex justify-content-between align-items-center">
+        <div className="table-responsive">
+          <table className="table table-hover table-striped">
+            <thead>
+              <tr>
+                <th>Job Title</th>
+                <th>Company</th>
+                <th>Applied On</th>
+                <th>Status</th>
+                <th>View Job</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {applications.map(application => (
+                <tr key={application._id}>
+                  <td>{application.job.title}</td>
+                  <td>{application.job.company}</td>
+                  <td>{new Date(application.appliedAt).toLocaleDateString()}</td>
+                  <td>
                     <span className={`badge ${getStatusBadgeClass(application.status)}`}>
                       {application.status}
                     </span>
+                  </td>
+                  <td>
                     <button 
-                      className="btn btn-outline-primary btn-sm"
+                      className="btn btn-sm btn-outline-primary"
                       onClick={() => navigate(`/jobs/${application.job._id}`)}
                     >
-                      View Job
+                      <i className="bi bi-eye me-1"></i> View Job
                     </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
+                  </td>
+                  <td>
+                    <button 
+                      className="btn btn-sm btn-danger"
+                      onClick={() => handleDeleteApplication(application._id)}
+                    >
+                      <i className="bi bi-trash me-1"></i> Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>

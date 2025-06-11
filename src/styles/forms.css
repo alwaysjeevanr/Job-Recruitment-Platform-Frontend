@@ -1,0 +1,109 @@
+.form-container-card {
+  background-color: var(--bs-white);
+  border-radius: 15px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+  padding: 2.5rem;
+  margin-top: 3rem;
+  margin-bottom: 3rem;
+}
+
+.form-title {
+  color: var(--dark-text-color);
+  font-weight: 700;
+  margin-bottom: 2rem;
+  font-size: 2.5rem;
+}
+
+.form-label {
+  font-weight: 500;
+  color: var(--dark-text-color);
+}
+
+.form-control,
+.form-select {
+  border: 1px solid var(--light-gray);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 0.25rem rgba(157, 22, 82, 0.25);
+}
+
+.btn-primary {
+  background-color: var(--secondary-color);
+  border-color: var(--secondary-color);
+  font-weight: 600;
+  padding: 0.85rem 1.5rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(157, 22, 82, 0.3);
+}
+
+.btn-primary:disabled {
+  background-color: var(--secondary-color) !important;
+  border-color: var(--secondary-color) !important;
+  opacity: 0.7;
+}
+
+.form-text-link {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.form-text-link:hover {
+  color: var(--secondary-color);
+  text-decoration: underline;
+}
+
+/* Responsive adjustments for forms */
+@media (max-width: 768px) {
+  .form-container-card {
+    padding: 2rem;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+  }
+
+  .form-title {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .form-control,
+  .form-select {
+    padding: 0.65rem 0.8rem;
+    font-size: 0.95rem;
+  }
+
+  .btn-primary {
+    padding: 0.75rem 1.2rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .form-container-card {
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .form-title {
+    font-size: 1.8rem;
+  }
+
+  .btn-primary {
+    padding: 0.65rem 1rem;
+  }
+} 

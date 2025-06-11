@@ -1,9 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import API from '../axios'; // Assuming API is configured for authenticated requests
+import { toast } from 'react-toastify';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import '../styles/forms.css'; // Import common forms styling
 
 const Dashboard = () => {
   const [userRole, setUserRole] = useState(null);
+  const [applications, setApplications] = useState([]); // New state for applications
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
@@ -14,15 +19,58 @@ const Dashboard = () => {
       return;
     }
 
+    const fetchEmployerApplications = async (role) => {
+      if (role === 'employer') {
+        try {
+          const response = await API.get('/applications/employer', {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (response.data?.success && response.data?.data) {
+            setApplications(response.data.data);
+          } else {
+            console.error('Unexpected response format for employer applications:', response.data);
+            setError('Failed to load employer applications due to unexpected data format.');
+          }
+        } catch (err) {
+          toast.error(err.response?.data?.message || 'Failed to fetch applications.');
+          setError(err.response?.data?.message || 'Failed to fetch applications.');
+        }
+      } else if (role === 'jobseeker') { 
+        try {
+          const response = await API.get('/applications/jobseeker', { 
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (response.data?.success && response.data?.data) {
+            setApplications(response.data.data);
+          } else {
+            console.error('Unexpected response format for jobseeker applications:', response.data);
+            setError('Failed to load jobseeker applications due to unexpected data format.');
+          }
+        } catch (err) {
+          toast.error(err.response?.data?.message || 'Failed to fetch your applications.');
+          setError(err.response?.data?.message || 'Failed to fetch your applications.');
+        }
+      }
+    };
+
     try {
-      // Decode the JWT token (it's in the format: header.payload.signature)
       const payload = JSON.parse(atob(token.split('.')[1]));
-      setUserRole(payload.role);
+      if (payload && payload.role) {
+        setUserRole(payload.role);
+        fetchEmployerApplications(payload.role); 
+      } else {
+        console.error('Role not found in token payload');
+        setError('Invalid session token.');
+        localStorage.removeItem('token');
+        navigate('/login');
+      }
     } catch (err) {
       console.error('Error decoding token:', err);
       setError('Invalid session. Please login again.');
       localStorage.removeItem('token');
       navigate('/login');
+    } finally {
+      setLoading(false);
     }
   }, [navigate]);
 
@@ -34,15 +82,62 @@ const Dashboard = () => {
     navigate('/jobs');
   };
 
-  if (error) {
-    return (
-      <div className="container mt-5">
-        <div className="alert alert-danger">{error}</div>
-      </div>
-    );
-  }
+  const handleDeleteApplication = async (applicationId) => {
+    if (window.confirm('Are you sure you want to delete this application?')) {
+      try {
+        const token = localStorage.getItem('token');
+        await API.delete(`/applications/${applicationId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        toast.success('Application deleted successfully!');
+        setApplications(prevApplications => prevApplications.filter(app => app._id !== applicationId));
+      } catch (err) {
+        toast.error(err.response?.data?.message || 'Failed to delete application.');
+        console.error('Error deleting application:', err);
+      }
+    }
+  };
 
-  if (!userRole) {
+  const handleStatusUpdate = async (applicationId, newStatus) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await API.put(`/applications/${applicationId}/status`, { status: newStatus }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.data?.success) {
+        toast.success('Application status updated successfully!');
+        setApplications(prevApplications => 
+          prevApplications.map(app => 
+            app._id === applicationId ? { ...app, status: newStatus } : app
+          )
+        );
+      } else {
+        toast.error(response.data?.message || 'Failed to update status due to unexpected response.');
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to update status.');
+      console.error('Error updating status:', err);
+    }
+  };
+
+  const getStatusBadgeClass = (status) => {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return 'bg-warning text-dark';
+      case 'reviewing':
+        return 'bg-primary';
+      case 'shortlisted':
+        return 'bg-info text-dark';
+      case 'rejected':
+        return 'bg-danger';
+      case 'hired':
+        return 'bg-success';
+      default:
+        return 'bg-secondary';
+    }
+  };
+
+  if (loading) {
     return (
       <div className="container mt-5">
         <div className="d-flex justify-content-center">
@@ -54,35 +149,168 @@ const Dashboard = () => {
     );
   }
 
+  if (error) {
+    return (
+      <div className="container mt-5">
+        <div className="alert alert-danger">{error}</div>
+      </div>
+    );
+  }
+
+  if (!userRole) {
+     return null;
+  }
+
   return (
     <div className="container mt-5">
       <div className="row justify-content-center">
         <div className="col-md-8">
-          <div className="card">
+          <div className="card form-container-card">
             <div className="card-body">
-              <h2 className="card-title text-center mb-4">Dashboard</h2>
+              <h2 className="card-title text-center mb-4 form-title">Dashboard</h2>
               
               <div className="text-center mb-4">
                 <h4>Welcome, {userRole === 'employer' ? 'Employer' : 'Job Seeker'}!</h4>
               </div>
 
-              <div className="d-grid gap-3">
-                {userRole === 'employer' ? (
-                  <button 
-                    className="btn btn-primary btn-lg"
-                    onClick={handlePostJob}
-                  >
-                    Post a Job
-                  </button>
-                ) : (
-                  <button 
-                    className="btn btn-primary btn-lg"
-                    onClick={handleViewJobs}
-                  >
-                    View Jobs
-                  </button>
-                )}
-              </div>
+              {userRole === 'employer' ? (
+                <>
+                  <h3 className="card-title text-center mb-4">Applicants for Your Jobs</h3>
+                  {applications.length === 0 ? (
+                    <div className="alert alert-info text-center">
+                      No applicants yet for your posted jobs.
+                    </div>
+                  ) : (
+                    <div className="table-responsive">
+                      <table className="table table-hover table-striped">
+                        <thead>
+                          <tr>
+                            <th>Applicant Name</th>
+                            <th>Job Title</th>
+                            <th>Applied On</th>
+                            <th>Status</th>
+                            <th>Resume</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {applications.map(app => (
+                            <tr key={app._id}>
+                              <td>{app.jobseeker.name}</td>
+                              <td>{app.job.title}</td>
+                              <td>{new Date(app.createdAt).toLocaleDateString()}</td>
+                              <td>
+                                <select
+                                  className="form-select form-select-sm"
+                                  value={app.status}
+                                  onChange={(e) => handleStatusUpdate(app._id, e.target.value)}
+                                >
+                                  <option value="pending">Pending</option>
+                                  <option value="reviewing">Reviewing</option>
+                                  <option value="shortlisted">Shortlisted</option>
+                                  <option value="rejected">Rejected</option>
+                                  <option value="hired">Hired</option>
+                                </select>
+                              </td>
+                              <td>
+                                {app.resume ? (
+                                  <a 
+                                    href={app.resume} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer" 
+                                    className="btn btn-sm btn-outline-info"
+                                  >
+                                    <i className="bi bi-file-earmark-person me-1"></i> View Resume
+                                  </a>
+                                ) : (
+                                  <span className="text-muted">N/A</span>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  <div className="d-grid gap-2 mt-4">
+                    <button 
+                      className="btn btn-primary"
+                      onClick={handlePostJob}
+                    >
+                      <i className="bi bi-plus-circle me-2"></i> Post a New Job
+                    </button>
+                    <button 
+                      className="btn btn-outline-secondary"
+                      onClick={handleViewJobs}
+                    >
+                      <i className="bi bi-search me-2"></i> Browse All Jobs
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <h3 className="card-title text-center mb-4">Your Job Applications</h3>
+                  {applications.length === 0 ? (
+                    <div className="alert alert-info text-center">
+                      You haven't applied to any jobs yet.
+                    </div>
+                  ) : (
+                    <div className="table-responsive">
+                      <table className="table table-hover table-striped">
+                        <thead>
+                          <tr>
+                            <th>Job Title</th>
+                            <th>Company</th>
+                            <th>Applied On</th>
+                            <th>Status</th>
+                            <th>View Job</th>
+                            <th>Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {applications.map(app => (
+                            <tr key={app._id}>
+                              <td>{app.job.title}</td>
+                              <td>{app.job.company}</td>
+                              <td>{new Date(app.createdAt).toLocaleDateString()}</td>
+                              <td>
+                                <span className={`badge ${getStatusBadgeClass(app.status)}`}>
+                                  {app.status}
+                                </span>
+                              </td>
+                              <td>
+                                <button 
+                                  className="btn btn-sm btn-outline-primary"
+                                  onClick={() => navigate(`/jobs/${app.job._id}`)}
+                                >
+                                  <i className="bi bi-eye me-1"></i> View Job
+                                </button>
+                              </td>
+                              <td>
+                                <button 
+                                  className="btn btn-sm btn-danger"
+                                  onClick={() => handleDeleteApplication(app._id)}
+                                >
+                                  <i className="bi bi-trash me-1"></i> Delete
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  <div className="d-grid gap-2 mt-4">
+                    <button 
+                      className="btn btn-primary"
+                      onClick={handleViewJobs}
+                    >
+                      <i className="bi bi-search me-2"></i> Browse All Jobs
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>

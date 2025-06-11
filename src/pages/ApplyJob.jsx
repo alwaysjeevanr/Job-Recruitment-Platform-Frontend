@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import API from '../axios';
 import { toast } from 'react-toastify';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import '../styles/forms.css';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
@@ -37,23 +38,27 @@ const ApplyJob = () => {
     formData.append('jobId', jobId);
 
     try {
-      await API.post('/apply', formData, {
+      const response = await API.post('/applications', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       });
 
-      toast.success('Application submitted successfully!');
-      setResume(null);
-      // Reset file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+      if (response.data?.success) {
+        toast.success('Application submitted successfully!');
+        setResume(null);
+        // Reset file input
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+        
+        // Redirect after a delay
+        setTimeout(() => {
+          navigate('/jobs');
+        }, 2000);
+      } else {
+        toast.error(response.data?.message || 'Failed to submit application due to an unexpected response.');
       }
-      
-      // Redirect after a delay
-      setTimeout(() => {
-        navigate('/jobs');
-      }, 2000);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to submit application. Please try again.');
     } finally {
@@ -65,9 +70,9 @@ const ApplyJob = () => {
     <div className="container mt-5">
       <div className="row justify-content-center">
         <div className="col-md-6">
-          <div className="card">
+          <div className="card form-container-card">
             <div className="card-body">
-              <h2 className="card-title text-center mb-4">Apply for Job</h2>
+              <h2 className="card-title text-center mb-4 form-title">Apply for Job</h2>
 
               <form onSubmit={handleSubmit}>
                 <div className="mb-3">
@@ -103,7 +108,7 @@ const ApplyJob = () => {
                 <div className="d-grid gap-2">
                   <button 
                     type="submit" 
-                    className="btn btn-primary"
+                    className="btn btn-primary w-100"
                     disabled={loading || !resume}
                   >
                     {loading ? (
@@ -117,7 +122,7 @@ const ApplyJob = () => {
                   </button>
                   <button 
                     type="button" 
-                    className="btn btn-outline-secondary"
+                    className="btn btn-outline-secondary w-100"
                     onClick={() => navigate('/jobs')}
                   >
                     Cancel

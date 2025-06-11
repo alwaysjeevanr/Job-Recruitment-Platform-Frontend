@@ -1,0 +1,172 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+* {
+    box-sizing: border-box;
+}
+
+:root {
+    --bs-primary: #007bff;
+    --bs-secondary: #6c757d;
+    --bs-success: #28a745;
+    --bs-info: #17a2b8;
+    --bs-warning: #ffc107;
+    --bs-danger: #dc3545;
+    --bs-light: #f8f9fa;
+    --bs-dark: #343a40;
+    --bs-white: #fff;
+    --bs-gray: #6c757d;
+    --bs-gray-dark: #343a40;
+
+    /* Custom Colors based on 'Believe Therapy' site */
+    --primary-color: #9D1652; /* New Primary Color */
+    --secondary-color: #F2C7D5; /* New Secondary Color */
+    --accent-color: #212121; /* New Accent/Third Color */
+    --emphasized-text-color: #C3005B; /* New Emphasized Text Color */
+
+    --dark-text-color: var(--accent-color); /* Main body text and icons */
+    --light-text-color: #666666; /* Lighter text for descriptions - Keep as is or adjust if needed */
+    --site-background-color: var(--bs-white); /* Pure white as secondary background */
+
+    /* Re-mapping Bootstrap primary to match new primary color for general theme */
+    --primary-blue: var(--primary-color);
+}
+
+html,
+body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100vw;
+    min-height: 100vh; /* Use min-height to ensure it covers the viewport but can expand */
+    overflow-x: hidden; /* Prevent horizontal scroll */
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--site-background-color) !important; /* Set to white */
+    color: var(--dark-text-color); /* Main body text */
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--site-background-color) !important; /* Ensure body uses the new site background color */
+    color: var(--dark-text-color); /* Ensure body text color is dark-text-color */
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--emphasized-text-color); /* Headers use emphasized text color */
+    font-weight: 600;
+}
+
+a {
+    color: var(--primary-color); /* Links use primary color */
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+    color: var(--secondary-color); /* Link hover uses secondary color */
+}
+
+.container {
+    max-width: 100%; /* Allow container to expand to full width */
+    padding-left: 15px; /* Add internal padding */
+    padding-right: 15px; /* Add internal padding */
+}
+
+.btn-primary {
+    background-color: var(--primary-color); /* Button background */
+    border-color: var(--primary-color); /* Button border */
+    color: var(--bs-white); /* Button text color */
+    transition: all 0.3s ease;
+    border-radius: 5px; /* Make more rectangular */
+    font-weight: 500; /* Consistent font weight */
+    padding: 0.6rem 1.5rem; /* Adjusted padding */
+}
+
+.btn-primary:hover {
+    background-color: var(--secondary-color); /* Darker shade for hover */
+    border-color: var(--secondary-color); /* Darker border on hover */
+    color: var(--accent-color); /* Change text color on hover */
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(153, 51, 102, 0.2);
+}
+
+.btn-outline-primary {
+    color: var(--primary-color); /* Button text color */
+    border-color: var(--primary-color); /* Button border */
+    transition: all 0.3s ease;
+    border-radius: 5px; /* Make more rectangular */
+    font-weight: 500; /* Consistent font weight */
+    padding: 0.6rem 1.5rem; /* Adjusted padding */
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--primary-color); /* Background on hover */
+    color: var(--bs-white); /* Text white on hover */
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(153, 51, 102, 0.2);
+}
+
+.form-control,
+.form-select {
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    border: 1px solid var(--secondary-color); /* Form input border color */
+    color: var(--dark-text-color); /* Form input text color */
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--primary-color); /* Focus border color */
+    box-shadow: 0 0 0 0.25rem rgba(157, 22, 82, 0.25); /* Focus shadow using primary color */
+}
+
+.card {
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.alert {
+    border-radius: 8px;
+}
+
+.badge {
+    border-radius: 5px;
+    padding: 0.4em 0.7em;
+    font-weight: 500;
+    color: var(--bs-white); /* Badge text color */
+    background-color: var(--primary-color); /* Badge background color */
+}
+
+/* Utility Classes */
+.text-primary {
+    color: var(--primary-color) !important;
+}
+
+.bg-primary {
+    background-color: var(--primary-color) !important;
+}
+
+.text-secondary {
+    color: var(--secondary-color) !important;
+}
+
+.shadow-sm {
+    box-shadow: 0 .125rem .25rem rgba(0,0,0,.075)!important
+}
+
+.shadow {
+    box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important
+}
+
+.shadow-lg {
+    box-shadow: 0 1rem 3rem rgba(0,0,0,.175)!important
+}
+
+/* Responsive Typography - Example */
+@media (max-width: 768px) {
+    h1 {
+        font-size: 2rem;
+    }
+    h2 {
+        font-size: 1.75rem;
+    }
+} 
