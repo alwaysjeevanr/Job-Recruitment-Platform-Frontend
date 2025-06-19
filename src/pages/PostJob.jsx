@@ -4,6 +4,7 @@ import API from '../axios';
 import { toast } from 'react-toastify';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '../styles/forms.css';
+import { jwtDecode } from 'jwt-decode';
 
 const PostJob = () => {
   const [formData, setFormData] = useState({
@@ -16,7 +17,8 @@ const PostJob = () => {
     maxSalary: '',
     currency: 'USD',
     type: '',
-    experience: ''
+    experience: '',
+    company: ''
   });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -41,6 +43,23 @@ const PostJob = () => {
       return;
     }
 
+    let employerId = null;
+    try {
+      const decodedToken = jwtDecode(token);
+      console.log(decodedToken);
+      if (decodedToken.role !== 'employer') {
+        toast.error('Only employers can post jobs.');
+        setLoading(false);
+        return;
+      }
+      employerId = decodedToken.id;
+    } catch {
+      toast.error('Invalid authentication token.');
+      setLoading(false);
+      navigate('/login');
+      return;
+    }
+
     try {
       const jobData = {
         title: formData.title,
@@ -48,13 +67,13 @@ const PostJob = () => {
         location: formData.location,
         type: formData.type,
         experience: formData.experience,
+        company: formData.company,
         skills: formData.skills.split(',').map(skill => skill.trim()).filter(skill => skill),
-        requirements: formData.requirements.split(',').map(req => req.trim()).filter(req => req),
-        salary: {
-          min: formData.minSalary ? parseFloat(formData.minSalary) : undefined,
-          max: formData.maxSalary ? parseFloat(formData.maxSalary) : undefined,
-          currency: formData.currency,
-        },
+        requirements: formData.requirements,
+        salary: formData.minSalary && formData.maxSalary
+          ? `${formData.minSalary}-${formData.maxSalary} ${formData.currency}`
+          : '',
+        employerId: employerId,
       };
 
       console.log('Sending job data:', jobData);
@@ -74,7 +93,8 @@ const PostJob = () => {
           maxSalary: '',
           currency: 'USD',
           type: '',
-          experience: ''
+          experience: '',
+          company: ''
         });
 
         setTimeout(() => {
@@ -111,6 +131,20 @@ const PostJob = () => {
                     onChange={handleChange}
                     required
                     placeholder="e.g., Senior React Developer"
+                  />
+                </div>
+
+                <div className="mb-3">
+                  <label htmlFor="company" className="form-label">Company Name</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    id="company"
+                    name="company"
+                    value={formData.company}
+                    onChange={handleChange}
+                    required
+                    placeholder="e.g., Tech Solutions Inc"
                   />
                 </div>
 
@@ -245,11 +279,12 @@ const PostJob = () => {
                     required
                   >
                     <option value="">Select Experience Level</option>
-                    <option value="Entry-level">Entry-level</option>
-                    <option value="Mid-level">Mid-level</option>
-                    <option value="Senior-level">Senior-level</option>
-                    <option value="Manager">Manager</option>
-                    <option value="Director">Director</option>
+                    <option value="Fresher">Fresher</option>
+                    <option value="0-1">0-1 Year</option>
+                    <option value="1-2">1-2 Years</option>
+                    <option value="2-5">2-5 Years</option>
+                    <option value="5-10">5-10 Years</option>
+                    <option value="10+">10+ Years</option>
                   </select>
                 </div>
 

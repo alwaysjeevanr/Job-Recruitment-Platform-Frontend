@@ -14,6 +14,7 @@ const JobDetails = () => {
   const [error, setError] = useState('');
   const [userRole, setUserRole] = useState(null);
   const [hasApplied, setHasApplied] = useState(false);
+  const [employerId, setEmployerId] = useState(null);
 
   useEffect(() => {
     const fetchJobDetails = async () => {
@@ -33,9 +34,15 @@ const JobDetails = () => {
         const response = await API.get('/jobseeker/applications', {
           headers: { Authorization: `Bearer ${token}` }
         });
-        const applications = response.data;
-        const applied = applications.some(app => app.job._id === jobId);
-        setHasApplied(applied);
+        
+        if (response.data?.success && Array.isArray(response.data?.data)) {
+          const applications = response.data.data;
+          const applied = applications.some(app => app.job && app.job._id === jobId);
+          setHasApplied(applied);
+        } else {
+          console.error('Unexpected response format for user applications:', response.data);
+          setHasApplied(false); // Assume not applied if format is unexpected
+        }
       } catch (err) {
         console.error('Error fetching user applications:', err);
         toast.error(err.response?.data?.message || 'Failed to fetch your application status.');
@@ -47,6 +54,9 @@ const JobDetails = () => {
       try {
         const payload = JSON.parse(atob(token.split('.')[1]));
         setUserRole(payload.role);
+        if (payload.role === 'employer') {
+          setEmployerId(payload.id || payload._id || payload.userId);
+        }
         if (payload.role === 'jobseeker') {
           fetchUserApplications(token);
         }
@@ -198,22 +208,22 @@ const JobDetails = () => {
               </div>
 
               <div className="text-center mt-5">
-                {userRole === 'jobseeker' && job.status.toLowerCase() === 'active' && !hasApplied && (
+                {userRole === 'jobseeker' && (
                   <button
-                    className="btn btn-primary btn-lg"
+                    className="btn btn-primary btn-lg custom-apply-btn"
                     onClick={handleApplyClick}
+                    disabled={hasApplied || job.status.toLowerCase() !== 'active'}
                   >
-                    <i className="bi bi-check-circle-fill me-2"></i> Apply for this Job
+                    {hasApplied ? 'Already Applied' : 'Apply Now'}
                   </button>
                 )}
-                {userRole === 'jobseeker' && hasApplied && (
-                  <p className="text-info mt-3">You have already applied for this job.</p>
-                )}
-                {userRole === 'jobseeker' && job.status.toLowerCase() !== 'active' && !hasApplied && (
-                  <p className="text-danger mt-3">This job is no longer active and cannot be applied for.</p>
-                )}
-                {userRole === 'employer' && (
-                  <p className="text-info mt-3">As an employer, you cannot apply for jobs.</p>
+                {userRole === 'employer' && employerId && (job.employer === employerId || job.employerId === employerId) && (
+                  <button
+                    className="btn btn-info btn-lg custom-apply-btn"
+                    onClick={() => navigate(`/applicants`)}
+                  >
+                    View Applicants
+                  </button>
                 )}
               </div>
             </div>

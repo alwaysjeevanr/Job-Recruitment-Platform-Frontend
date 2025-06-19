@@ -58,19 +58,6 @@ const Applications = () => {
     }
   };
 
-  const getStatusBadgeClass = (status) => {
-    switch (status.toLowerCase()) {
-      case 'pending':
-        return 'bg-warning';
-      case 'accepted':
-        return 'bg-success';
-      case 'rejected':
-        return 'bg-danger';
-      default:
-        return 'bg-secondary';
-    }
-  };
-
   if (loading) {
     return (
       <div className="container mt-5">
@@ -112,37 +99,39 @@ const Applications = () => {
         </div>
       ) : (
         <div className="table-responsive">
-          <table className="table table-hover table-striped">
+          <table className="table table-hover table-striped align-middle">
             <thead>
               <tr>
                 <th>Job Title</th>
-                <th>Company</th>
                 <th>Applied On</th>
                 <th>Status</th>
-                <th>View Job</th>
+                <th>Job Details</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {applications.map(application => (
                 <tr key={application._id}>
-                  <td>{application.job.title}</td>
-                  <td>{application.job.company}</td>
-                  <td>{new Date(application.appliedAt).toLocaleDateString()}</td>
-                  <td>
-                    <span className={`badge ${getStatusBadgeClass(application.status)}`}>
-                      {application.status}
-                    </span>
+                  <td className="align-middle">{application.job ? application.job.title : 'N/A'}</td>
+                  <td className="align-middle">{new Date(application.appliedAt).toLocaleDateString()}</td>
+                  <td className="align-middle">
+                    <span className={`badge ${
+                      application.status === 'pending' ? 'bg-warning text-dark' :
+                      application.status === 'accepted' ? 'bg-success' :
+                      application.status === 'rejected' ? 'bg-danger' :
+                      'bg-secondary'
+                    }`} style={{ textTransform: 'capitalize', padding: '0.5em 1em' }}>{application.status}</span>
                   </td>
-                  <td>
-                    <button 
+                  <td className="align-middle">
+                    <button
                       className="btn btn-sm btn-outline-primary"
-                      onClick={() => navigate(`/jobs/${application.job._id}`)}
+                      onClick={() => navigate(`/jobs/${application.job?._id}`)}
+                      disabled={!application.job?._id}
                     >
                       <i className="bi bi-eye me-1"></i> View Job
                     </button>
                   </td>
-                  <td>
+                  <td className="align-middle">
                     <button 
                       className="btn btn-sm btn-danger"
                       onClick={() => handleDeleteApplication(application._id)}

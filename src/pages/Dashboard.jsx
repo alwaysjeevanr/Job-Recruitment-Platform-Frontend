@@ -74,30 +74,6 @@ const Dashboard = () => {
     }
   }, [navigate]);
 
-  const handlePostJob = () => {
-    navigate('/post-job');
-  };
-
-  const handleViewJobs = () => {
-    navigate('/jobs');
-  };
-
-  const handleDeleteApplication = async (applicationId) => {
-    if (window.confirm('Are you sure you want to delete this application?')) {
-      try {
-        const token = localStorage.getItem('token');
-        await API.delete(`/applications/${applicationId}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        toast.success('Application deleted successfully!');
-        setApplications(prevApplications => prevApplications.filter(app => app._id !== applicationId));
-      } catch (err) {
-        toast.error(err.response?.data?.message || 'Failed to delete application.');
-        console.error('Error deleting application:', err);
-      }
-    }
-  };
-
   const handleStatusUpdate = async (applicationId, newStatus) => {
     try {
       const token = localStorage.getItem('token');
@@ -116,24 +92,21 @@ const Dashboard = () => {
       }
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to update status.');
-      console.error('Error updating status:', err);
     }
   };
 
-  const getStatusBadgeClass = (status) => {
-    switch (status.toLowerCase()) {
-      case 'pending':
-        return 'bg-warning text-dark';
-      case 'reviewing':
-        return 'bg-primary';
-      case 'shortlisted':
-        return 'bg-info text-dark';
-      case 'rejected':
-        return 'bg-danger';
-      case 'hired':
-        return 'bg-success';
-      default:
-        return 'bg-secondary';
+  const handleDeleteApplication = async (applicationId) => {
+    if (window.confirm('Are you sure you want to delete this application?')) {
+      try {
+        const token = localStorage.getItem('token');
+        await API.delete(`/applications/${applicationId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        toast.success('Application deleted successfully!');
+        setApplications(prevApplications => prevApplications.filter(app => app._id !== applicationId));
+      } catch (err) {
+        toast.error(err.response?.data?.message || 'Failed to delete application.');
+      }
     }
   };
 
@@ -176,13 +149,27 @@ const Dashboard = () => {
               {userRole === 'employer' ? (
                 <>
                   <h3 className="card-title text-center mb-4">Applicants for Your Jobs</h3>
+                  <div className="d-flex justify-content-center gap-2 mb-4">
+                    <button
+                      className="btn btn-primary"
+                      onClick={() => navigate('/post-job')}
+                    >
+                      <i className="bi bi-plus-circle me-2"></i> Post a New Job
+                    </button>
+                    <button
+                      className="btn btn-outline-secondary"
+                      onClick={() => navigate('/jobs')}
+                    >
+                      <i className="bi bi-search me-2"></i> Browse All Jobs
+                    </button>
+                  </div>
                   {applications.length === 0 ? (
                     <div className="alert alert-info text-center">
                       No applicants yet for your posted jobs.
                     </div>
                   ) : (
                     <div className="table-responsive">
-                      <table className="table table-hover table-striped">
+                      <table className="table table-hover table-striped align-middle">
                         <thead>
                           <tr>
                             <th>Applicant Name</th>
@@ -195,31 +182,34 @@ const Dashboard = () => {
                         <tbody>
                           {applications.map(app => (
                             <tr key={app._id}>
-                              <td>{app.jobseeker.name}</td>
-                              <td>{app.job.title}</td>
-                              <td>{new Date(app.createdAt).toLocaleDateString()}</td>
-                              <td>
+                              <td className="align-middle">{app.applicant ? app.applicant.name : 'N/A'}</td>
+                              <td className="align-middle">{app.job ? app.job.title : 'N/A'}</td>
+                              <td className="align-middle">{new Date(app.appliedAt).toLocaleDateString()}</td>
+                              <td className="align-middle">
                                 <select
-                                  className="form-select form-select-sm"
+                                  className={`form-select form-select-sm ${
+                                    app.status === 'pending' ? 'bg-warning text-dark' :
+                                    app.status === 'accepted' ? 'bg-success text-white' :
+                                    app.status === 'rejected' ? 'bg-danger text-white' :
+                                    ''
+                                  }`}
                                   value={app.status}
                                   onChange={(e) => handleStatusUpdate(app._id, e.target.value)}
                                 >
                                   <option value="pending">Pending</option>
-                                  <option value="reviewing">Reviewing</option>
-                                  <option value="shortlisted">Shortlisted</option>
+                                  <option value="accepted">Accepted</option>
                                   <option value="rejected">Rejected</option>
-                                  <option value="hired">Hired</option>
                                 </select>
                               </td>
-                              <td>
-                                {app.resume ? (
-                                  <a 
-                                    href={app.resume} 
-                                    target="_blank" 
-                                    rel="noopener noreferrer" 
-                                    className="btn btn-sm btn-outline-info"
+                              <td className="align-middle">
+                                {app.resumeLink ? (
+                                  <a
+                                    href={app.resumeLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="btn btn-sm btn-info"
                                   >
-                                    <i className="bi bi-file-earmark-person me-1"></i> View Resume
+                                    <i className="bi bi-eye me-2"></i> View Resume
                                   </a>
                                 ) : (
                                   <span className="text-muted">N/A</span>
@@ -231,63 +221,64 @@ const Dashboard = () => {
                       </table>
                     </div>
                   )}
-
-                  <div className="d-grid gap-2 mt-4">
-                    <button 
-                      className="btn btn-primary"
-                      onClick={handlePostJob}
-                    >
-                      <i className="bi bi-plus-circle me-2"></i> Post a New Job
-                    </button>
-                    <button 
-                      className="btn btn-outline-secondary"
-                      onClick={handleViewJobs}
-                    >
-                      <i className="bi bi-search me-2"></i> Browse All Jobs
-                    </button>
-                  </div>
                 </>
               ) : (
                 <>
-                  <h3 className="card-title text-center mb-4">Your Job Applications</h3>
+                  <h3 className="card-title text-center mb-4">Your Applications</h3>
+                  <div className="d-flex justify-content-center gap-2 mb-4">
+                    <button
+                      className="btn btn-primary"
+                      onClick={() => navigate('/jobs')}
+                    >
+                      <i className="bi bi-plus-circle me-2"></i> Apply for Jobs
+                    </button>
+                    <button
+                      className="btn btn-outline-secondary"
+                      onClick={() => navigate('/jobs')}
+                    >
+                      <i className="bi bi-search me-2"></i> Search Jobs
+                    </button>
+                  </div>
                   {applications.length === 0 ? (
                     <div className="alert alert-info text-center">
                       You haven't applied to any jobs yet.
                     </div>
                   ) : (
                     <div className="table-responsive">
-                      <table className="table table-hover table-striped">
+                      <table className="table table-hover table-striped align-middle">
                         <thead>
                           <tr>
                             <th>Job Title</th>
-                            <th>Company</th>
                             <th>Applied On</th>
                             <th>Status</th>
-                            <th>View Job</th>
+                            <th>Job Details</th>
                             <th>Actions</th>
                           </tr>
                         </thead>
                         <tbody>
                           {applications.map(app => (
                             <tr key={app._id}>
-                              <td>{app.job.title}</td>
-                              <td>{app.job.company}</td>
-                              <td>{new Date(app.createdAt).toLocaleDateString()}</td>
-                              <td>
-                                <span className={`badge ${getStatusBadgeClass(app.status)}`}>
-                                  {app.status}
-                                </span>
+                              <td className="align-middle">{app.job ? app.job.title : 'N/A'}</td>
+                              <td className="align-middle">{new Date(app.appliedAt).toLocaleDateString()}</td>
+                              <td className="align-middle">
+                                <span className={`badge ${
+                                  app.status === 'pending' ? 'bg-warning text-dark' :
+                                  app.status === 'accepted' ? 'bg-success' :
+                                  app.status === 'rejected' ? 'bg-danger' :
+                                  'bg-secondary'
+                                }`} style={{ textTransform: 'capitalize', padding: '0.5em 1em' }}>{app.status}</span>
                               </td>
-                              <td>
-                                <button 
+                              <td className="align-middle">
+                                <button
                                   className="btn btn-sm btn-outline-primary"
-                                  onClick={() => navigate(`/jobs/${app.job._id}`)}
+                                  onClick={() => navigate(`/jobs/${app.job?._id}`)}
+                                  disabled={!app.job?._id}
                                 >
                                   <i className="bi bi-eye me-1"></i> View Job
                                 </button>
                               </td>
-                              <td>
-                                <button 
+                              <td className="align-middle">
+                                <button
                                   className="btn btn-sm btn-danger"
                                   onClick={() => handleDeleteApplication(app._id)}
                                 >
@@ -300,15 +291,6 @@ const Dashboard = () => {
                       </table>
                     </div>
                   )}
-
-                  <div className="d-grid gap-2 mt-4">
-                    <button 
-                      className="btn btn-primary"
-                      onClick={handleViewJobs}
-                    >
-                      <i className="bi bi-search me-2"></i> Browse All Jobs
-                    </button>
-                  </div>
                 </>
               )}
             </div>

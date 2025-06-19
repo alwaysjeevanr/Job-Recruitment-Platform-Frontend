@@ -9,6 +9,7 @@ const RecentJobList = () => {
   const [recentJobs, setRecentJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [appliedJobIds, setAppliedJobIds] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -35,6 +36,23 @@ const RecentJobList = () => {
     };
 
     fetchRecentJobs();
+
+    // Fetch jobseeker applications if logged in as jobseeker
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        if (payload.role === 'jobseeker') {
+          API.get('/jobseeker/applications', {
+            headers: { Authorization: `Bearer ${token}` }
+          }).then(res => {
+            if (res.data?.success && Array.isArray(res.data?.data)) {
+              setAppliedJobIds(res.data.data.map(app => app.job?._id).filter(Boolean));
+            }
+          }).catch(() => {});
+        }
+      } catch {}
+    }
   }, []);
 
   const handleQuickApply = (jobId) => {
@@ -150,10 +168,11 @@ const RecentJobList = () => {
                 </div>
                 <button 
                   className="btn btn-primary w-100 apply-btn"
-                  onClick={(e) => { e.stopPropagation(); handleQuickApply(job._id); }}
+                  onClick={(e) => { e.stopPropagation(); if (!appliedJobIds.includes(job._id)) handleQuickApply(job._id); }}
+                  disabled={appliedJobIds.includes(job._id)}
                 >
                   <i className="bi bi-lightning-fill me-1"></i>
-                  Quick Apply
+                  {appliedJobIds.includes(job._id) ? 'Already Applied' : 'Quick Apply'}
                 </button>
               </div>
               <div className="card-footer text-muted">

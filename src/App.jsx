@@ -11,6 +11,7 @@ import Applications from './pages/Applications';
 import Welcome from './pages/Welcome';
 import JobDetails from './pages/JobDetails';
 import EmployerJobPosts from './pages/EmployerJobPosts';
+import Applicants from './pages/Applicants';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 function App() {
@@ -62,6 +63,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Applications />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/applicants" 
+              element={
+                <ProtectedRoute>
+                  <Applicants />
                 </ProtectedRoute>
               } 
             />

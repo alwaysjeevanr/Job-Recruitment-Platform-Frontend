@@ -9,6 +9,7 @@ import MultiFieldSearchBar from '../components/MultiFieldSearchBar';
 
 const JobList = () => {
   const [filteredJobs, setFilteredJobs] = useState([]);
+  const [appliedJobIds, setAppliedJobIds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState(null);
   const navigate = useNavigate();
@@ -49,6 +50,15 @@ const JobList = () => {
       try {
         const payload = JSON.parse(atob(token.split('.')[1]));
         setUserRole(payload.role);
+        if (payload.role === 'jobseeker') {
+          API.get('/jobseeker/applications', {
+            headers: { Authorization: `Bearer ${token}` }
+          }).then(res => {
+            if (res.data?.success && Array.isArray(res.data?.data)) {
+              setAppliedJobIds(res.data.data.map(app => app.job?._id).filter(Boolean));
+            }
+          }).catch(() => {});
+        }
       } catch (err) {
         console.error('Error decoding token:', err);
         localStorage.removeItem('token');
@@ -119,9 +129,10 @@ const JobList = () => {
                   {userRole !== 'employer' && (
                     <button 
                       className="btn btn-primary w-100 apply-btn"
-                      onClick={(e) => { e.stopPropagation(); navigate(`/jobs/${job._id}/apply`); }}
+                      onClick={(e) => { e.stopPropagation(); if (!appliedJobIds.includes(job._id)) navigate(`/jobs/${job._id}/apply`); }}
+                      disabled={appliedJobIds.includes(job._id)}
                     >
-                      <i className="bi bi-lightning-fill me-1"></i> Apply Now
+                      <i className="bi bi-lightning-fill me-1"></i> {appliedJobIds.includes(job._id) ? 'Already Applied' : 'Apply Now'}
                     </button>
                   )}
                 </div>

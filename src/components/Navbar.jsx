@@ -98,7 +98,7 @@ const Navbar = () => {
               <>
                 {userRole === 'employer' ? (
                   <li className="nav-item">
-                    <Link className="nav-link" to="/dashboard">
+                    <Link className="nav-link" to="/applicants">
                       <i className="bi bi-file-earmark-text me-1"></i>
                       Applicants
                     </Link>

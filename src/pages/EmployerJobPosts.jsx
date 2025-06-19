@@ -21,17 +21,16 @@ const EmployerJobPosts = () => {
       }
 
       try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        if (!payload || payload.role !== 'employer') {
-          toast.error('Access denied. Only employers can view their job posts.');
-          navigate('/dashboard');
-          return;
-        }
-
-        const response = await API.get(`/employer/jobs`, {
+        const response = await API.get(`/jobs/employer/list`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        setJobPosts(response.data);
+        
+        if (response.data?.success && Array.isArray(response.data?.data)) {
+          setJobPosts(response.data.data);
+        } else {
+          console.error('Unexpected response format for employer job posts:', response.data);
+          setError('Failed to load your job posts due to unexpected data format.');
+        }
       } catch (err) {
         setError(err.response?.data?.message || 'Failed to fetch your job posts.');
         toast.error(err.response?.data?.message || 'Failed to fetch your job posts.');
@@ -52,15 +51,19 @@ const EmployerJobPosts = () => {
     }
 
     try {
-      await API.put(`/jobs/${jobId}/status`, { status: newStatus }, {
+      const response = await API.put(`/jobs/${jobId}/status`, { status: newStatus }, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      toast.success('Job status updated successfully!');
-      setJobPosts(prevJobs =>
-        prevJobs.map(job =>
-          job._id === jobId ? { ...job, status: newStatus } : job
-        )
-      );
+      if (response.data?.success) {
+        toast.success('Job status updated successfully!');
+        setJobPosts(prevJobs =>
+          prevJobs.map(job =>
+            job._id === jobId ? { ...job, status: newStatus } : job
+          )
+        );
+      } else {
+        toast.error(response.data?.message || 'Failed to update job status due to unexpected response.');
+      }
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to update job status.');
       console.error('Error updating job status:', err.response?.data || err.message);
@@ -73,8 +76,8 @@ const EmployerJobPosts = () => {
         return 'bg-success';
       case 'closed':
         return 'bg-danger';
-      case 'filled':
-        return 'bg-info text-dark';
+      case 'draft':
+        return 'bg-secondary'; // Assuming draft is grey
       default:
         return 'bg-secondary';
     }
@@ -152,7 +155,7 @@ const EmployerJobPosts = () => {
                     >
                       <option value="active">Active</option>
                       <option value="closed">Closed</option>
-                      <option value="filled">Filled</option>
+                      <option value="draft">Draft</option>
                     </select>
                   </div>
                 </div>
